@@ -1,26 +1,16 @@
 clc
 clear
 %% setting general variables
-nelx = 1;
-nely = 200;
-nelz = 50;
-penal = 3;
-volfrac = 0.5;
-rmin = 1.5;
-eta_p = 0.5;
-betamax = 16;
-kkttol = 1e-4;
-g_dist = 0.07;
-%% prescribed force-displacement points
+nelx = 1;   % number of elements in x-direction
+nely = 200; % number of elements in y-direction
+nelz = 50;  % number of elements in z-direction
+penal = 3;  % SIMP parameter
+nEl = nelx*nely*nelz;  
 nnodes = (nelx+1)*(nely+1)*(nelz+1);
-fdpoint = 3*nnodes;
-p=1:5;
-U_pre = [4; 8; 12; 18; 24];
 % Load increments [Start End Increment InitialFactor FinalFactor]
 TIMS=[0.0 5 1 0.0 1.0]';
 %% initialize FE-grid  
-% node position
-XYZ = zeros(nnodes,3);
+XYZ = zeros(nnodes,3); % node position
 coord = [nelx*0.1, 0, 0];
 for n=1:nnodes
     XYZ(n,:) = coord;
@@ -35,16 +25,15 @@ for n=1:nnodes
         coord(3) = 0;
     end
 end
-% node connectivity
-nEl = nelx * nely * nelz;                                                  
-nodeNrs = ( reshape( 1 : ( 1 + nelx ) * ( 1 + nely ) * ( 1 + nelz ), ...
-    1 + nely, 1 + nelz, 1 + nelx ) );         
-madVec = reshape( nodeNrs( 1 : nely, 1 : nelz, 1 : nelx ) + 1, nEl, 1 );
-madMat = madVec+([0, (nely+1)*(nelz+1)+[0,-1], -1, (nely+1)+[0], (nely+1)*(nelz+2)+[0, -1],(nely+1)+[-1]]);             
+% node connectivity                                           
+nodeNrs = (reshape(1:(1+nelx)*(1+nely)*(1+nelz), 1+nely, 1+nelz, 1+nelx));         
+madVec = reshape(nodeNrs(1:nely, 1:nelz, 1:nelx)+1, nEl, 1);
+madMat = madVec+([0, (nely+1)*(nelz+1)+[0, -1], -1, (nely+1), ...
+    (nely+1)*(nelz+2)+[0, -1], nely]);                 
 %% boundary condtions and loads
 % External forces [Node, DOF, Value]
 nodal_force = 0.003;
-% Prescribed displacements [Node, DOF, Value]
+% Prescribed displacements/forces [Node, DOF, Value]
 EXTFORCE = [];
 SDISPT = [];
 for n=1:nnodes
@@ -62,8 +51,13 @@ end
 %% Material properties and general FE-parameters
 nu = 0.3; E = 1.0; Emin = 1e-9;
 % Set program parameters
-ITRA=30; ATOL=1.0E4; NTOL=10; TOL=1E-5;
-%% setting up densities
+ITRA = 30;    % max. num. of newton iterations
+ATOL = 1.0E4; % divergence tolerance for bisection
+NTOL = 10;    % max. num. of bisection
+TOL = 1E-5;   % tolerance of residuum
+%% running FEA with test material distribution
 load('softening0_200x50.mat')
-U = NLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, xPhys, EXTFORCE, SDISPT, XYZ, madMat);
+U = NLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, xPhys, ...
+    EXTFORCE, SDISPT, XYZ, madMat);
+deviation = sum(abs(U(:)-U_valid(:)));
 plot_deformed_geometry(nelx, nely, nelz, U, madMat, xPhys, 'new')
