@@ -2,8 +2,8 @@ clc
 clear
 %% setting general variables
 nelx = 1;   % number of elements in x-direction
-nely = 200; % number of elements in y-direction
-nelz = 50;  % number of elements in z-direction
+nely = 6; % number of elements in y-direction
+nelz = 2;  % number of elements in z-direction
 penal = 3;  % SIMP parameter
 nEl = nelx*nely*nelz;  
 nnodes = (nelx+1)*(nely+1)*(nelz+1);
@@ -56,7 +56,8 @@ ATOL = 1.0E4; % divergence tolerance for bisection
 NTOL = 10;    % max. num. of bisection
 TOL = 1E-5;   % tolerance of residuum
 %% running FEA with test material distribution
-load('softening0_200x50.mat')
+%load('softening0_200x50.mat')
+xPhys=0.5*ones(nEl,1);
 U = NLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, xPhys, ...
     EXTFORCE, SDISPT, XYZ, madMat);
 deviation = sum(abs(U(:)-U_valid(:)));
