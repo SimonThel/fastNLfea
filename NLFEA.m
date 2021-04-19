@@ -47,6 +47,7 @@ TIME = TIMEF;                           % starting time
 TDELTA = TIMEI - TIMEF;                 % time interval for laod step
 ITOL = 1;                               % Bisection level
 TARY=zeros(NTOL,1);                     % Time stamps for bisections
+[lambda, mu, ETAN, DET, BG, gSHPDT, temp] = lin_assembly(nu, E, Emin, xPhys, penal, NE, XYZ, LE);
 %% Load increment loop
 ISTEP = -1; FLAG10 = 1;
 while(FLAG10 == 1)                      % Solution has been converged
@@ -106,7 +107,7 @@ while(FLAG10 == 1)                      % Solution has been converged
                 error('Iteration limit exceeds'); 
             end
             % Assemble K and F
-            assembly(nu, E, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
+            [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp);
             % Increase external force
             if size(EXTFORCE,1)>0
                 LOC = NDOF*(EXTFORCE(:,1)-1)+EXTFORCE(:,2);
@@ -142,9 +143,8 @@ while(FLAG10 == 1)                      % Solution has been converged
             end
             % Solve the system equation 
             if(FLAG11 == 0)
-                % ensuring symmetry of tangent stiffness matrix
-                GKF = (GKF+GKF')/2;
-                SOLN = decomposition(GKF(FREEDOF, FREEDOF))\FORCE(FREEDOF);
+                % assuming symmetry of tangent stiffness matrix
+                SOLN = decomposition(GKF(FREEDOF, FREEDOF), 'chol','upper')\FORCE(FREEDOF);
                 DISPDD(FREEDOF) = DISPDD(FREEDOF) + SOLN; 
                 DISPTD(FREEDOF) = DISPTD(FREEDOF) + SOLN; 
                 FLAG20 = 1;
