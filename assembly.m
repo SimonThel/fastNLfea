@@ -80,12 +80,16 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     lintSTRESS = (lambda.*sum(epsilon_int.*tr, [1 2]) .* tr + 2*mu.*epsilon_int);
     STRESS = nintSTRESS + lSTRESS - lintSTRESS;
     % voigt notation of stress matrix
-    STRESSv = [zeros(1,1,NE, 8); STRESS(2,2,:,:); STRESS(3,3,:,:); zeros(1,1,NE, 8); STRESS(2,3,:,:); zeros(1,1,NE,8)];
+    STRESSv = [STRESS(1,1,:,:); STRESS(2,2,:,:); STRESS(3,3,:,:); ...
+        STRESS(2,1,:,:); STRESS(3,2,:,:); STRESS(1,3,:,:)];
     %% compute internal force vector 
     gforce = DET * sum(pagemtimes(BNT, STRESSv),4);
     %% compute tangent stiffness  
-    SHEAD = [nintSTRESS zeros(3,6,NE,8); zeros(3,3,NE,8) nintSTRESS zeros(3,3,NE,8); zeros(3,6,NE,8) nintSTRESS];
-    gstiff = DET*sum(pagemtimes(pagemtimes(BNT, repmat(ETAN,1,1,1,8)),BN) + pagemtimes(pagemtimes(BG, 'transpose', SHEAD, 'none'),BG),4);
+    SHEAD = [nintSTRESS zeros(3, 6, NE, 8); ...
+        zeros(3, 3, NE, 8) nintSTRESS zeros( 3, 3, NE, 8); ...
+        zeros(3, 6, NE, 8) nintSTRESS];
+    gstiff = DET*sum(pagemtimes(pagemtimes(BNT, repmat(ETAN,1,1,1,8)),BN) ...
+        + pagemtimes(pagemtimes(BG, 'transpose', SHEAD, 'none'),BG),4);
     %% assemble internal force vector and stiffness matrix     
     FORCE = fsparse(reshape(pagetranspose(GDOF), 24*NE, 1), 1, ...
         - reshape(pagetranspose(gforce), 24*NE, 1), [NEQ 1]);
