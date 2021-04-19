@@ -36,6 +36,9 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     % only calculate det of one part of GJ as regular mesh is used
     DET = det(J(1:3,1:3));
     SHPD = (eye(24).*repmat(diag(inv(J(1:3,1:3)))', 1, 8))*DSF;
+    
+    newtemp = pagetranspose(reshape(repmat(SHPD, 1,3)', 24,3,1,8));
+    newtemp = newtemp(:,[1,9,17,2,10,18,3,11,19,4,12,20,5,13,21,6,14,22,7,15,23,8,16,24],:,:);
     temp = reshape(repmat(SHPD, 3,1), 24,24);
     temp_e1 = temp(1:3,:); temp_e2 = temp(4:6,:); temp_e3 = temp(7:9,:); temp_e4 = temp(10:12,:);
     temp_e5 = temp(13:15,:); temp_e6 = temp(16:18,:); temp_e7 = temp(19:21,:); temp_e8 = temp(22:24,:);
@@ -48,25 +51,32 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     BG6 = repmat([repmat([1 0 0],3, 8);repmat([0 1 0],3, 8);repmat([0 0 1],3, 8)].*repmat(temp_e6, 3,1), 1, 1, NE);
     BG7 = repmat([repmat([1 0 0],3, 8);repmat([0 1 0],3, 8);repmat([0 0 1],3, 8)].*repmat(temp_e7, 3,1), 1, 1, NE);
     BG8 = repmat([repmat([1 0 0],3, 8);repmat([0 1 0],3, 8);repmat([0 0 1],3, 8)].*repmat(temp_e8, 3,1), 1, 1, NE);
+    newBG = repmat([repmat([1 0 0],3, 8);repmat([0 1 0],3, 8);repmat([0 0 1],3, 8)].*repmat(newtemp, 3,1,1,1), 1, 1, NE, 1);
     %% Displacement and defortmation gradient
     % Nodal coordinates and incremental displacements
     % Local to global mapping
     GDOF = reshape ([1 + (LE-1)*NDOF; 2 + (LE-1)*NDOF; 3 + (LE-1)*NDOF],NE, 24);
-    GDSP = DISPTD(GDOF)';
-    GDSP=reshape(GDSP,NDOF,8,NE);
+    GDSP1 = DISPTD(GDOF)';
+    GDSP=reshape(GDSP1,NDOF,8,NE); % sum(GDSP(:)) ~= 0
     % Interpolation factor
     gamma = reshape((tanh(beta*eta) + tanh(beta*(xPhys.^penal - eta))) / (tanh(beta * eta) + tanh(beta*(1-eta))),1,1, NE);
     GDSP_int = pagemtimes(gamma, GDSP);
     % Deformation gradient see eq. 3.5
     d0U = pagemtimes(GDSP, 'none', repmat(SHPD, 1, 1, NE), 'transpose');
+        newd0U = permute(reshape(permute(reshape(d0U, [3 1 3 8 NE]), [1 3 2 4 5]), [3 3 8 NE]), [1 2 4 3]);
     d0U_int = pagemtimes(GDSP_int, 'none', repmat(SHPD, 1, 1, NE), 'transpose');
+        newd0U_int = permute(reshape(permute(reshape(d0U_int, [3 1 3 8 NE]), [1 3 2 4 5]), [3 3 8 NE]), [1 2 4 3]);
     F_int = d0U_int + repmat(eye(3), 1, 8, NE);
+        newF_int = newd0U_int + repmat(eye(3), 1, 1, NE, 8);
     FT_int = pagetranspose(F_int);
+        newFT_int = pagetranspose(newF_int);
     FT_int_e1 = FT_int(1:3,:,:); FT_int_e2 = FT_int(4:6,:,:); FT_int_e3 = FT_int(7:9,:,:); FT_int_e4 = FT_int(10:12,:,:);
     FT_int_e5 = FT_int(13:15,:,:); FT_int_e6 = FT_int(16:18,:,:); FT_int_e7 = FT_int(19:21,:,:); FT_int_e8 = FT_int(22:24,:,:);
     C_int = pagemtimes(FT_int, 'none', F_int, 'none');
+        newC_int = pagemtimes(newFT_int, newF_int);
     % Lagrangian strain eq. 3.10
     E_int = 0.5*(C_int-repmat(eye(24),1,1,NE));
+        newE_int = 0.5*(newC_int-repmat(eye(3), 1, 1, NE, 8));
     % split strain tensor into the parts for each integration point
     E_int1 = E_int(1:3,1:3,:); E_int2 = E_int(4:6,4:6,:); E_int3 = E_int(7:9,7:9,:); E_int4 = E_int(10:12,10:12,:); 
     E_int5 = E_int(13:15,13:15,:); E_int6 = E_int(16:18,16:18,:); E_int7 = E_int(19:21,19:21,:); E_int8 = E_int(22:24,22:24,:); 
@@ -78,7 +88,8 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     epsilon5 = 0.5*(d0U(:,13:15,:) + pagetranspose(d0U(:,13:15,:))); 
     epsilon6 = 0.5*(d0U(:,16:18,:) + pagetranspose(d0U(:,16:18,:))); 
     epsilon7 = 0.5*(d0U(:,19:21,:) + pagetranspose(d0U(:,19:21,:))); 
-    epsilon8 = 0.5*(d0U(:,22:24,:) + pagetranspose(d0U(:,22:24,:))); 
+    epsilon8 = 0.5*(d0U(:,22:24,:) + pagetranspose(d0U(:,22:24,:)));
+        newepsilon = 0.5*(newd0U+pagetranspose(newd0U));
     epsilon_int1 = 0.5*(d0U_int(:,1:3,:) + pagetranspose(d0U_int(:,1:3,:)));
     epsilon_int2 = 0.5*(d0U_int(:,4:6,:) + pagetranspose(d0U_int(:,4:6,:))); 
     epsilon_int3 = 0.5*(d0U_int(:,7:9,:) + pagetranspose(d0U_int(:,7:9,:))); 
@@ -87,6 +98,7 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     epsilon_int6 = 0.5*(d0U_int(:,16:18,:) + pagetranspose(d0U_int(:,16:18,:))); 
     epsilon_int7 = 0.5*(d0U_int(:,19:21,:) + pagetranspose(d0U_int(:,19:21,:))); 
     epsilon_int8 = 0.5*(d0U_int(:,22:24,:) + pagetranspose(d0U_int(:,22:24,:)));
+        newepsilon_int = 0.5*(newd0U_int+pagetranspose(newd0U_int));
     %% nonlinear displacement-strain matrix eq. 3.142
     BN1 = [temp_e1.*repmat(FT_int_e1, 1, 8, 1); temp_e1.*repmat(circshift(FT_int_e1,[-1 0 0]), 1, 8, 1) + circshift(temp_e1,[-1 0 0]).*repmat(FT_int_e1, 1, 8, 1)];
     BN2 = [temp_e2.*repmat(FT_int_e2, 1, 8, 1); temp_e2.*repmat(circshift(FT_int_e2,[-1 0 0]), 1, 8, 1) + circshift(temp_e2,[-1 0 0]).*repmat(FT_int_e2, 1, 8, 1)];
@@ -96,13 +108,16 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     BN6 = [temp_e6.*repmat(FT_int_e6, 1, 8, 1); temp_e6.*repmat(circshift(FT_int_e6,[-1 0 0]), 1, 8, 1) + circshift(temp_e6,[-1 0 0]).*repmat(FT_int_e6, 1, 8, 1)];
     BN7 = [temp_e7.*repmat(FT_int_e7, 1, 8, 1); temp_e7.*repmat(circshift(FT_int_e7,[-1 0 0]), 1, 8, 1) + circshift(temp_e7,[-1 0 0]).*repmat(FT_int_e7, 1, 8, 1)];
     BN8 = [temp_e8.*repmat(FT_int_e8, 1, 8, 1); temp_e8.*repmat(circshift(FT_int_e8,[-1 0 0]), 1, 8, 1) + circshift(temp_e8,[-1 0 0]).*repmat(FT_int_e8, 1, 8, 1)];   
+        newBN = [newtemp.*repmat(newFT_int, 1, 8, 1, 1); newtemp.*repmat(circshift(newFT_int,[-1 0 0 0]), 1, 8, 1, 1) + circshift(newtemp,[-1 0 0 0]).*repmat(newFT_int, 1, 8, 1, 1)];
         %% Compute stress
     % assumption of plane stress
     plane_stress = [0 0 0;
                     0 1 1;
                     0 1 1;];
     tr = repmat(eye(3),1,1,NE);
+        newtr = repmat(eye(3), 1, 1, NE, 8);
     gplane_stress = repmat(plane_stress, 1, 1, NE);
+        newgplane_stress = repmat(plane_stress, 1, 1, NE, 8);
     % second piola kirchhoff stress tensor (nonlinear)
     nintSTRESS_e1 = (lambda.*sum(E_int1.*tr, [1 2]) .* tr + 2*mu.*E_int1) .* gplane_stress; 
     nintSTRESS_e2 = (lambda.*sum(E_int2.*tr, [1 2]) .* tr + 2*mu.*E_int2) .* gplane_stress;
@@ -112,6 +127,7 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     nintSTRESS_e6 = (lambda.*sum(E_int6.*tr, [1 2]) .* tr + 2*mu.*E_int6) .* gplane_stress;
     nintSTRESS_e7 = (lambda.*sum(E_int7.*tr, [1 2]) .* tr + 2*mu.*E_int7) .* gplane_stress;
     nintSTRESS_e8 = (lambda.*sum(E_int8.*tr, [1 2]) .* tr + 2*mu.*E_int8) .* gplane_stress;
+        newnintSTRESS = (lambda.*sum(newE_int.*newtr, [1 2]) .* newtr + 2*mu.*newE_int) .* newgplane_stress;
     lSTRESS_e1 = (lambda.*sum(epsilon1.*tr, [1 2]) .* tr + 2*mu.*epsilon1) .* gplane_stress; 
     lSTRESS_e2 = (lambda.*sum(epsilon2.*tr, [1 2]) .* tr + 2*mu.*epsilon2) .* gplane_stress;
     lSTRESS_e3 = (lambda.*sum(epsilon3.*tr, [1 2]) .* tr + 2*mu.*epsilon3) .* gplane_stress;
@@ -120,6 +136,7 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     lSTRESS_e6 = (lambda.*sum(epsilon6.*tr, [1 2]) .* tr + 2*mu.*epsilon6) .* gplane_stress;
     lSTRESS_e7 = (lambda.*sum(epsilon7.*tr, [1 2]) .* tr + 2*mu.*epsilon7) .* gplane_stress;
     lSTRESS_e8 = (lambda.*sum(epsilon8.*tr, [1 2]) .* tr + 2*mu.*epsilon8) .* gplane_stress; 
+        newlSTRESS = (lambda.*sum(newepsilon.*newtr, [1 2]) .* newtr + 2*mu.*newepsilon) .* newgplane_stress; 
     lintSTRESS_e1 = (lambda.*sum(epsilon_int1.*tr, [1 2]) .* tr + 2*mu.*epsilon_int1) .* gplane_stress; 
     lintSTRESS_e2 = (lambda.*sum(epsilon_int2.*tr, [1 2]) .* tr + 2*mu.*epsilon_int2) .* gplane_stress;
     lintSTRESS_e3 = (lambda.*sum(epsilon_int3.*tr, [1 2]) .* tr + 2*mu.*epsilon_int3) .* gplane_stress;
@@ -128,6 +145,7 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     lintSTRESS_e6 = (lambda.*sum(epsilon_int6.*tr, [1 2]) .* tr + 2*mu.*epsilon_int6) .* gplane_stress;
     lintSTRESS_e7 = (lambda.*sum(epsilon_int7.*tr, [1 2]) .* tr + 2*mu.*epsilon_int7) .* gplane_stress;
     lintSTRESS_e8 = (lambda.*sum(epsilon_int8.*tr, [1 2]) .* tr + 2*mu.*epsilon_int8) .* gplane_stress; 
+        newlintSTRESS = (lambda.*sum(newepsilon_int.*newtr, [1 2]) .* newtr + 2*mu.*newepsilon_int) .* newgplane_stress; 
     STRESS_e1 = nintSTRESS_e1 + lSTRESS_e1 - lintSTRESS_e1;
     STRESS_e2 = nintSTRESS_e2 + lSTRESS_e2 - lintSTRESS_e2;
     STRESS_e3 = nintSTRESS_e3 + lSTRESS_e3 - lintSTRESS_e3;
@@ -136,6 +154,7 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     STRESS_e6 = nintSTRESS_e6 + lSTRESS_e6 - lintSTRESS_e6;
     STRESS_e7 = nintSTRESS_e7 + lSTRESS_e7 - lintSTRESS_e7;
     STRESS_e8 = nintSTRESS_e8 + lSTRESS_e8 - lintSTRESS_e8;
+        newSTRESS = newnintSTRESS + newlSTRESS - newlintSTRESS;
     % voigt notation of stress matrix
     STRESS_e1v = [zeros(1,1,NE); STRESS_e1(2,2,:); STRESS_e1(3,3,:); zeros(1,1,NE); STRESS_e1(2,3,:); zeros(1,1,NE)];
     STRESS_e2v = [zeros(1,1,NE); STRESS_e2(2,2,:); STRESS_e2(3,3,:); zeros(1,1,NE); STRESS_e2(2,3,:); zeros(1,1,NE)];
@@ -145,10 +164,12 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     STRESS_e6v = [zeros(1,1,NE); STRESS_e6(2,2,:); STRESS_e6(3,3,:); zeros(1,1,NE); STRESS_e6(2,3,:); zeros(1,1,NE)];
     STRESS_e7v = [zeros(1,1,NE); STRESS_e7(2,2,:); STRESS_e7(3,3,:); zeros(1,1,NE); STRESS_e7(2,3,:); zeros(1,1,NE)];
     STRESS_e8v = [zeros(1,1,NE); STRESS_e8(2,2,:); STRESS_e8(3,3,:); zeros(1,1,NE); STRESS_e8(2,3,:); zeros(1,1,NE)];
+        newSTRESSv = [zeros(1,1,NE, 8); newSTRESS(2,2,:,:); newSTRESS(3,3,:,:); zeros(1,1,NE, 8); newSTRESS(2,3,:,:); zeros(1,1,NE,8)];
     %% compute internal force vector 
     gforce = DET*(pagemtimes(BN1,'transpose', STRESS_e1v, 'none') + pagemtimes(BN2,'transpose',STRESS_e2v,'none') + pagemtimes(BN3, 'transpose', STRESS_e3v,'none') ...
             + pagemtimes(BN4,'transpose', STRESS_e4v, 'none') + pagemtimes(BN5,'transpose',STRESS_e5v,'none') + pagemtimes(BN6, 'transpose', STRESS_e6v,'none') ...
             + pagemtimes(BN7,'transpose',STRESS_e7v,'none') + pagemtimes(BN8, 'transpose', STRESS_e8v,'none'));
+        newgforce = DET * sum(pagemtimes(newBN,'transpose', newSTRESSv,'none'),4);
     %% compute tangent stiffness  
     SHEAD1 = [nintSTRESS_e1 zeros(3,6,NE);zeros(3,3,NE) nintSTRESS_e1 zeros(3,3,NE); zeros(3,6,NE) nintSTRESS_e1];
     SHEAD2 = [nintSTRESS_e2 zeros(3,6,NE);zeros(3,3,NE) nintSTRESS_e2 zeros(3,3,NE); zeros(3,6,NE) nintSTRESS_e2];
@@ -158,7 +179,7 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
     SHEAD6 = [nintSTRESS_e6 zeros(3,6,NE);zeros(3,3,NE) nintSTRESS_e6 zeros(3,3,NE); zeros(3,6,NE) nintSTRESS_e6];
     SHEAD7 = [nintSTRESS_e7 zeros(3,6,NE);zeros(3,3,NE) nintSTRESS_e7 zeros(3,3,NE); zeros(3,6,NE) nintSTRESS_e7];
     SHEAD8 = [nintSTRESS_e8 zeros(3,6,NE);zeros(3,3,NE) nintSTRESS_e8 zeros(3,3,NE); zeros(3,6,NE) nintSTRESS_e8];
-    
+        newSHEAD = [newnintSTRESS zeros(3,6,NE,8); zeros(3,3,NE,8) newnintSTRESS zeros(3,3,NE,8); zeros(3,6,NE,8) newnintSTRESS];
     gstiff = DET*((pagemtimes(pagemtimes(BN1, 'transpose', ETAN, 'none'),BN1) + pagemtimes(pagemtimes(BG1, 'transpose', SHEAD1, 'none'),BG1)) ...
         + (pagemtimes(pagemtimes(BN2, 'transpose', ETAN, 'none'),BN2) + pagemtimes(pagemtimes(BG2, 'transpose', SHEAD2, 'none'),BG2)) ...
         + (pagemtimes(pagemtimes(BN3, 'transpose', ETAN, 'none'),BN3) + pagemtimes(pagemtimes(BG3, 'transpose', SHEAD3, 'none'),BG3)) ...
@@ -167,7 +188,8 @@ function assembly(nu, E0, Emin, xPhys, penal, beta, eta, NE, NEQ, NDOF, XYZ, LE)
         + (pagemtimes(pagemtimes(BN6, 'transpose', ETAN, 'none'),BN6) + pagemtimes(pagemtimes(BG6, 'transpose', SHEAD6, 'none'),BG6)) ...
         + (pagemtimes(pagemtimes(BN7, 'transpose', ETAN, 'none'),BN7) + pagemtimes(pagemtimes(BG7, 'transpose', SHEAD7, 'none'),BG7)) ...
         + (pagemtimes(pagemtimes(BN8, 'transpose', ETAN, 'none'),BN8) + pagemtimes(pagemtimes(BG8, 'transpose', SHEAD8, 'none'),BG8)));
+        newgstiff = DET*sum(pagemtimes(pagemtimes(newBN, 'transpose', repmat(ETAN,1,1,1,8), 'none'),newBN) + pagemtimes(pagemtimes(newBG, 'transpose', newSHEAD, 'none'),newBG),4);
     %% assemble internal force vector and stiffness matrix     
-    FORCE = fsparse(reshape(pagetranspose(GDOF), 24*NE, 1), 1, -reshape(pagetranspose(gforce), 24*NE, 1), [NEQ 1]);
-    GKF = fsparse(reshape(repmat(GDOF, 1,24)', 576*NE, 1), reshape(repmat(reshape(GDOF',1, 24*NE), 24, 1), 1 , 576*NE)', reshape(gstiff, 576*NE ,1), [NEQ NEQ]);
+    FORCE = fsparse(reshape(pagetranspose(GDOF), 24*NE, 1), 1, -reshape(pagetranspose(newgforce), 24*NE, 1), [NEQ 1]);
+    GKF = fsparse(reshape(repmat(GDOF, 1,24)', 576*NE, 1), reshape(repmat(reshape(GDOF',1, 24*NE), 24, 1), 1 , 576*NE)', reshape(newgstiff, 576*NE ,1), [NEQ NEQ]);
 end
