@@ -107,7 +107,7 @@ while(FLAG10 == 1)                      % Solution has been converged
                 error('Iteration limit exceeds'); 
             end
             % Assemble K and F
-            [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp);
+            [FORCE, GKF] = assembly_mex(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp);
             % Increase external force
             if size(EXTFORCE,1)>0
                 LOC = NDOF*(EXTFORCE(:,1)-1)+EXTFORCE(:,2);

@@ -58,9 +58,7 @@ TOL = 1E-5;   % tolerance of residuum
 %% running FEA with test material distribution
 load('softening0_200x50.mat')
 %xPhys=0.5*ones(nEl,1);
-tic
 U = NLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, xPhys, ...
     EXTFORCE, SDISPT, XYZ, madMat);
-toc
 deviation = sum(abs(U(:)-U_valid(:)));
 plot_deformed_geometry(nelx, nely, nelz, U, madMat, xPhys, 'new')
