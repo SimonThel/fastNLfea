@@ -30,10 +30,11 @@ function [lambda, mu, ETAN, DET, BG, gSHPDT, temp] = lin_assembly(nu, E, Emin, x
     J = DSF*ELXY; 
     % only calculate det of one part of GJ as regular mesh is used
     DET = det(J(1:3,1:3));
-    SHPD = (eye(24).*repmat(diag(inv(J(1:3,1:3)))', 1, 8))*DSF;
-    gSHPDT = pagetranspose(repmat(SHPD, 1, 1, NE));
-    temp = pagetranspose(reshape(repmat(SHPD, 1,3)', 24,3,1,8));
+    SHPD = (eye(24).*repmat(diag(inv(J(1:3,1:3)))', 24, 8))*DSF;
+    gSHPDT = repmat(SHPD, 1, 1, NE);
+    gSHPDT = permute(gSHPDT,[2 1 3]);
+    temp = permute(reshape(repmat(SHPD, 1,3)', 24,3,1,8), [2 1 3 4]);
     temp = temp(:,[1,9,17,2,10,18,3,11,19,4,12,20,5,13,21,6,14,22,7,15,23,8,16,24],:,:);
     %% linear displacement-strain matrix eq. 3.151   
-    BG = repmat([repmat([1 0 0],3, 8);repmat([0 1 0],3, 8);...
-        repmat([0 0 1],3, 8)].*repmat(temp, 3,1,1,1), 1, 1, NE, 1);
+    BG = repmat([repmat([1 0 0],3, 8, 1, 8);repmat([0 1 0],3, 8, 1, 8);...
+        repmat([0 0 1],3, 8, 1, 8)].*repmat(temp, 3,1,1,1), 1, 1, NE, 1);
