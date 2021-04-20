@@ -7,6 +7,8 @@ Fast and efficient Matlab code for geometric nonlinear Finite Element Analysis t
 * Matlab 2020b or newer 
 * `fsparse` from Stefan Engblom's Matlab libraries [stenglib](https://github.com/stefanengblom/stenglib)
 
+If you Matlab 2020a or earlier, please use the code in the branch `mex-development`. This version does not use the newly introduces `pagemtimes` function. However, this implementation relies on `for`-loops for the matrix multiplication and, thus, is much slower (around 4 to 5 times). From this code, you can derive C/C++ code to run on other machines.  
+
 ## Current Capabilities 
 
 This code solves fast and efficiently geometric nonlinear FEA problems with a linear material model. **fasNLfea** is successfully applied to initial wing design using topology optimization with predefined nonlinear behavior. This code is tailored for topology optimization. It assumes a uniform mesh with the dimension `nelx*nely*nelz`. Every element has a density `xPhys`. This density describes the topology of the domain. The element stiffness is determined by the SIMP material model. An energy interpolation scheme reduces mesh distortion for low stiffness/void elements.
