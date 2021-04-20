@@ -31,25 +31,25 @@ function [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF,
     BN = [temp.*repmat(FT_int, 1, 8, 1, 1); ...
         temp.*repmat(circshift(FT_int,[-1 0 0 0]), 1, 8, 1, 1)...
         + circshift(temp,[-1 0 0 0]).*repmat(FT_int, 1, 8, 1, 1)];
-    BNT = permute(BN,[2 1 3 4]);
+    %BNT = permute(BN,[2 1 3 4]);
         %% Compute stress
     % assumption of plane stress
     tr = repmat(eye(3), 1, 1, NE, 8);
     % second piola kirchhoff stress tensor (nonlinear)
-    nintSTRESS = (lambda.*sum(E_int.*tr, [1 2]) .* tr + 2*mu.*E_int);
-    lSTRESS = (lambda.*sum(epsilon.*tr, [1 2]) .* tr + 2*mu.*epsilon);
-    lintSTRESS = (lambda.*sum(epsilon_int.*tr, [1 2]) .* tr + 2*mu.*epsilon_int);
+    nintSTRESS = (repmat(lambda.*sum(E_int.*tr, [1 2]),3,3,1,1) .* tr + 2*repmat(mu,3,3,1,1).*E_int);
+    lSTRESS = (repmat(lambda.*sum(epsilon.*tr, [1 2]),3,3,1,1) .* tr + 2*repmat(mu,3,3,1,1).*epsilon);
+    lintSTRESS = (repmat(lambda.*sum(epsilon_int.*tr, [1 2]),3,3,1,1) .* tr + 2*repmat(mu,3,3,1,1).*epsilon_int);
     STRESS = nintSTRESS + lSTRESS - lintSTRESS;
     % voigt notation of stress matrix
     STRESSv = [STRESS(1,1,:,:); STRESS(2,2,:,:); STRESS(3,3,:,:); ...
         STRESS(2,1,:,:); STRESS(3,2,:,:); STRESS(1,3,:,:)];
     %% compute internal force vector 
-    gforce = DET * sum(pagemtimes(BNT, STRESSv),4);
+    gforce = DET * sum(pagemtimes(BN,'transpose', STRESSv,'none'),4);
     %% compute tangent stiffness  
     SHEAD = [nintSTRESS zeros(3, 6, NE, 8); ...
         zeros(3, 3, NE, 8) nintSTRESS zeros( 3, 3, NE, 8); ...
         zeros(3, 6, NE, 8) nintSTRESS];
-    gstiff = DET*sum(pagemtimes(pagemtimes(BNT, repmat(ETAN,1,1,1,8)),BN) ...
+    gstiff = DET*sum(pagemtimes(pagemtimes(BN,'transpose', ETAN,'none'),BN) ...
         + pagemtimes(pagemtimes(BG, 'transpose', SHEAD, 'none'),BG),4);
     %% assemble internal force vector and stiffness matrix     
     FORCE = fsparse(reshape(permute(GDOF,[2 1 3 4]), 24*NE, 1), 1, ...
