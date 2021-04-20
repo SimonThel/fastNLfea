@@ -4,3 +4,13 @@ debugging/.DS_Store
 plotting/.DS_Store
 
 .DS_Store
+
+assembly_mex.mexmaci64
+
+assembly.prj
+
+codegen/mex/assembly/
+
+*.prj
+
+*.mexmaci64
