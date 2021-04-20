@@ -25,7 +25,7 @@ function U = NLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, ...
 %       XYZ - node postions [(nelx+1)*(nely+1)*(nelz+1) x 3 double]
 %       LE - node conectivity [nelx*nely*nelz x 8 double]
 %% Initialize some variables
-global DISPDD DISPTD FORCE GKF          % Global variables
+%global DISPDD DISPTD FORCE GKF          % Global variables
 [NUMNP, NDOF] = size(XYZ);              % Analysis parameters
 NE = size(LE,1);
 NEQ = NDOF*NUMNP;
@@ -111,7 +111,7 @@ while(FLAG10 == 1)                      % Solution has been converged
             % Increase external force
             if size(EXTFORCE,1)>0
                 LOC = NDOF*(EXTFORCE(:,1)-1)+EXTFORCE(:,2);
-                FORCE = FORCE + fsparse(LOC,1,FACTOR*EXTFORCE(:,3), [NEQ 1]);
+                FORCE = FORCE + sparse(LOC,1,FACTOR*EXTFORCE(:,3), NEQ, 1);
             end
             % Check convergence
             FIXEDDOF=NDOF*(SDISPT(:,1)-1)+SDISPT(:,2); 
@@ -119,7 +119,7 @@ while(FLAG10 == 1)                      % Solution has been converged
             FREEDOF=setdiff(ALLDOF,FIXEDDOF); 
             if(ITER>1)
                 RESN=max(abs(FORCE(FREEDOF)));
-                OUTPUT(1, ITER, RESN, TIME, DELTA) 
+                %OUTPUT(1, ITER, RESN, TIME, DELTA) 
                 if(RESN<TOL) 
                     FLAG10 = 1; 
                     break;
@@ -132,7 +132,7 @@ while(FLAG10 == 1)                      % Solution has been converged
                         TIME = TIME0 + DELTA;
                         TARY(ITOL) = TIME;
                         DISPTD=CDISP;
-                        fprintf(1,'Not converged. Bisecting load increment %3d\n',ITOL);
+                        %fprintf(1,'Not converged. Bisecting load increment %3d\n',ITOL);
                     else
                         error('Max No. of bisection');
                     end
@@ -144,7 +144,8 @@ while(FLAG10 == 1)                      % Solution has been converged
             % Solve the system equation 
             if(FLAG11 == 0)
                 % assuming symmetry of tangent stiffness matrix
-                SOLN = decomposition(GKF(FREEDOF, FREEDOF), 'chol','upper')\FORCE(FREEDOF);
+                GKF = 0.5*(GKF+GKF');%/2;
+                SOLN = GKF(FREEDOF,FREEDOF)\FORCE(FREEDOF);
                 DISPDD(FREEDOF) = DISPDD(FREEDOF) + SOLN; 
                 DISPTD(FREEDOF) = DISPTD(FREEDOF) + SOLN; 
                 FLAG20 = 1;
