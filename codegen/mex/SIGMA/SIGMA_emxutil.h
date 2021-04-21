@@ -3,15 +3,16 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * _coder_nlStrainDisplacment_api.h
+ * SIGMA_emxutil.h
  *
- * Code generation for function '_coder_nlStrainDisplacment_api'
+ * Code generation for function 'SIGMA_emxutil'
  *
  */
 
 #pragma once
 
 /* Include files */
+#include "SIGMA_types.h"
 #include "rtwtypes.h"
 #include "emlrt.h"
 #include "mex.h"
@@ -21,7 +22,9 @@
 #include <string.h>
 
 /* Function Declarations */
-void nlStrainDisplacment_api(const mxArray * const prhs[2], const mxArray *plhs
-  [1]);
+void emxEnsureCapacity_real_T(emxArray_real_T *emxArray, int32_T oldNumel);
+void emxFree_real_T(emxArray_real_T **pEmxArray);
+void emxInit_real_T(emxArray_real_T **pEmxArray, int32_T numDimensions,
+                    boolean_T doPush);
 
-/* End of code generation (_coder_nlStrainDisplacment_api.h) */
+/* End of code generation (SIGMA_emxutil.h) */

@@ -41,8 +41,9 @@ build $builddir/SIGMA_terminate.o : cc $root/SIGMA_terminate.c
 build $builddir/SIGMA.o : cc $root/SIGMA.c
 build $builddir/_coder_SIGMA_api.o : cc $root/interface/_coder_SIGMA_api.c
 build $builddir/_coder_SIGMA_mex.o : cc $root/interface/_coder_SIGMA_mex.c
+build $builddir/SIGMA_emxutil.o : cc $root/SIGMA_emxutil.c
 build $builddir/_coder_SIGMA_info.o : cc $root/interface/_coder_SIGMA_info.c
 build $builddir/c_mexapi_version.o : cc $matlabdir/extern/version/c_mexapi_version.c
 
 # Link
-build $root/SIGMA_mex.mexmaci64 : link $builddir/SIGMA_data.o $builddir/rt_nonfinite.o $builddir/SIGMA_initialize.o $builddir/SIGMA_terminate.o $builddir/SIGMA.o $builddir/_coder_SIGMA_api.o $builddir/_coder_SIGMA_mex.o $builddir/_coder_SIGMA_info.o $builddir/c_mexapi_version.o 
+build $root/SIGMA_mex.mexmaci64 : link $builddir/SIGMA_data.o $builddir/rt_nonfinite.o $builddir/SIGMA_initialize.o $builddir/SIGMA_terminate.o $builddir/SIGMA.o $builddir/_coder_SIGMA_api.o $builddir/_coder_SIGMA_mex.o $builddir/SIGMA_emxutil.o $builddir/_coder_SIGMA_info.o $builddir/c_mexapi_version.o 

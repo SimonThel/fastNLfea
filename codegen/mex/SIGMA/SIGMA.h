@@ -12,6 +12,7 @@
 #pragma once
 
 /* Include files */
+#include "SIGMA_types.h"
 #include "rtwtypes.h"
 #include "emlrt.h"
 #include "mex.h"
@@ -21,6 +22,6 @@
 #include <string.h>
 
 /* Function Declarations */
-void SIGMA(const real_T stress[720000], real_T NE, real_T SHEAD[6480000]);
+void SIGMA(const emxArray_real_T *stress, real_T NE, emxArray_real_T *SHEAD);
 
 /* End of code generation (SIGMA.h) */

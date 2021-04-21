@@ -13,32 +13,33 @@
 #include "_coder_SIGMA_api.h"
 #include "SIGMA.h"
 #include "SIGMA_data.h"
+#include "SIGMA_emxutil.h"
+#include "SIGMA_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Declarations */
-static real_T (*b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
-  *parentId))[720000];
+static void b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
+  *parentId, emxArray_real_T *y);
 static real_T c_emlrt_marshallIn(const mxArray *NE, const char_T *identifier);
 static real_T d_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
   *parentId);
-static real_T (*e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier *
-  msgId))[720000];
-static real_T (*emlrt_marshallIn(const mxArray *stress, const char_T *identifier))
-  [720000];
-static const mxArray *emlrt_marshallOut(const real_T u[6480000]);
+static void e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
+  *msgId, emxArray_real_T *ret);
+static void emlrt_marshallIn(const mxArray *stress, const char_T *identifier,
+  emxArray_real_T *y);
+static const mxArray *emlrt_marshallOut(const emxArray_real_T *u);
 static real_T f_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
   *msgId);
 
 /* Function Definitions */
-static real_T (*b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
-  *parentId))[720000]
+static void b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
+  *parentId, emxArray_real_T *y)
 {
-  real_T (*y)[720000];
-  y = e_emlrt_marshallIn(emlrtAlias(u), parentId);
+  e_emlrt_marshallIn(emlrtAlias(u), parentId, y);
   emlrtDestroyArray(&u);
-  return y;
 }
-  static real_T c_emlrt_marshallIn(const mxArray *NE, const char_T *identifier)
+
+static real_T c_emlrt_marshallIn(const mxArray *NE, const char_T *identifier)
 {
   emlrtMsgIdentifier thisId;
   real_T y;
@@ -59,43 +60,50 @@ static real_T d_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
   return y;
 }
 
-static real_T (*e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier *
-  msgId))[720000]
+static void e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
+  *msgId, emxArray_real_T *ret)
 {
-  static const int32_T dims[4] = { 3, 3, 10000, 8 };
+  static const int32_T dims[4] = { 3, 3, -1, 8 };
 
-  real_T (*ret)[720000];
-  emlrtCheckBuiltInR2012b(emlrtRootTLSGlobal, msgId, src, "double", false, 4U,
-    dims);
-  ret = (real_T (*)[720000])emlrtMxGetData(src);
+  int32_T iv[4];
+  int32_T i;
+  const boolean_T bv[4] = { false, false, true, false };
+
+  emlrtCheckVsBuiltInR2012b(emlrtRootTLSGlobal, msgId, src, "double", false, 4U,
+    dims, &bv[0], iv);
+  ret->allocatedSize = iv[0] * iv[1] * iv[2] * iv[3];
+  i = ret->size[0] * ret->size[1] * ret->size[2] * ret->size[3];
+  ret->size[0] = iv[0];
+  ret->size[1] = iv[1];
+  ret->size[2] = iv[2];
+  ret->size[3] = iv[3];
+  emxEnsureCapacity_real_T(ret, i);
+  ret->data = (real_T *)emlrtMxGetData(src);
+  ret->canFreeData = false;
   emlrtDestroyArray(&src);
-  return ret;
 }
-  static real_T (*emlrt_marshallIn(const mxArray *stress, const char_T
-  *identifier))[720000]
+
+static void emlrt_marshallIn(const mxArray *stress, const char_T *identifier,
+  emxArray_real_T *y)
 {
   emlrtMsgIdentifier thisId;
-  real_T (*y)[720000];
   thisId.fIdentifier = (const char_T *)identifier;
   thisId.fParent = NULL;
   thisId.bParentIsCell = false;
-  y = b_emlrt_marshallIn(emlrtAlias(stress), &thisId);
+  b_emlrt_marshallIn(emlrtAlias(stress), &thisId, y);
   emlrtDestroyArray(&stress);
-  return y;
 }
 
-static const mxArray *emlrt_marshallOut(const real_T u[6480000])
+static const mxArray *emlrt_marshallOut(const emxArray_real_T *u)
 {
   static const int32_T iv[4] = { 0, 0, 0, 0 };
-
-  static const int32_T iv1[4] = { 9, 9, 10000, 8 };
 
   const mxArray *m;
   const mxArray *y;
   y = NULL;
   m = emlrtCreateNumericArray(4, &iv[0], mxDOUBLE_CLASS, mxREAL);
-  emlrtMxSetData((mxArray *)m, (void *)&u[0]);
-  emlrtSetDimensions((mxArray *)m, iv1, 4);
+  emlrtMxSetData((mxArray *)m, &u->data[0]);
+  emlrtSetDimensions((mxArray *)m, u->size, 4);
   emlrtAssign(&y, m);
   return y;
 }
@@ -114,20 +122,27 @@ static real_T f_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
 
 void SIGMA_api(const mxArray * const prhs[2], const mxArray *plhs[1])
 {
-  real_T (*SHEAD)[6480000];
-  real_T (*stress)[720000];
+  emxArray_real_T *SHEAD;
+  emxArray_real_T *stress;
   real_T NE;
-  SHEAD = (real_T (*)[6480000])mxMalloc(sizeof(real_T [6480000]));
+  emlrtHeapReferenceStackEnterFcnR2012b(emlrtRootTLSGlobal);
+  emxInit_real_T(&stress, 4, true);
+  emxInit_real_T(&SHEAD, 4, true);
 
   /* Marshall function inputs */
-  stress = emlrt_marshallIn(emlrtAlias(prhs[0]), "stress");
+  stress->canFreeData = false;
+  emlrt_marshallIn(emlrtAlias(prhs[0]), "stress", stress);
   NE = c_emlrt_marshallIn(emlrtAliasP(prhs[1]), "NE");
 
   /* Invoke the target function */
-  SIGMA(*stress, NE, *SHEAD);
+  SIGMA(stress, NE, SHEAD);
 
   /* Marshall function outputs */
-  plhs[0] = emlrt_marshallOut(*SHEAD);
+  SHEAD->canFreeData = false;
+  plhs[0] = emlrt_marshallOut(SHEAD);
+  emxFree_real_T(&SHEAD);
+  emxFree_real_T(&stress);
+  emlrtHeapReferenceStackLeaveFcnR2012b(emlrtRootTLSGlobal);
 }
 
 /* End of code generation (_coder_SIGMA_api.c) */

@@ -41,8 +41,9 @@ build $builddir/nlStrainDisplacment_terminate.o : cc $root/nlStrainDisplacment_t
 build $builddir/nlStrainDisplacment.o : cc $root/nlStrainDisplacment.c
 build $builddir/_coder_nlStrainDisplacment_api.o : cc $root/interface/_coder_nlStrainDisplacment_api.c
 build $builddir/_coder_nlStrainDisplacment_mex.o : cc $root/interface/_coder_nlStrainDisplacment_mex.c
+build $builddir/nlStrainDisplacment_emxutil.o : cc $root/nlStrainDisplacment_emxutil.c
 build $builddir/_coder_nlStrainDisplacment_info.o : cc $root/interface/_coder_nlStrainDisplacment_info.c
 build $builddir/c_mexapi_version.o : cc $matlabdir/extern/version/c_mexapi_version.c
 
 # Link
-build $root/nlStrainDisplacment_mex.mexmaci64 : link $builddir/nlStrainDisplacment_data.o $builddir/rt_nonfinite.o $builddir/nlStrainDisplacment_initialize.o $builddir/nlStrainDisplacment_terminate.o $builddir/nlStrainDisplacment.o $builddir/_coder_nlStrainDisplacment_api.o $builddir/_coder_nlStrainDisplacment_mex.o $builddir/_coder_nlStrainDisplacment_info.o $builddir/c_mexapi_version.o 
+build $root/nlStrainDisplacment_mex.mexmaci64 : link $builddir/nlStrainDisplacment_data.o $builddir/rt_nonfinite.o $builddir/nlStrainDisplacment_initialize.o $builddir/nlStrainDisplacment_terminate.o $builddir/nlStrainDisplacment.o $builddir/_coder_nlStrainDisplacment_api.o $builddir/_coder_nlStrainDisplacment_mex.o $builddir/nlStrainDisplacment_emxutil.o $builddir/_coder_nlStrainDisplacment_info.o $builddir/c_mexapi_version.o 

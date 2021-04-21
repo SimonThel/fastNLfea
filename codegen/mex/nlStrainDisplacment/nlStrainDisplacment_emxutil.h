@@ -3,9 +3,9 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * nlStrainDisplacment.h
+ * nlStrainDisplacment_emxutil.h
  *
- * Code generation for function 'nlStrainDisplacment'
+ * Code generation for function 'nlStrainDisplacment_emxutil'
  *
  */
 
@@ -22,7 +22,9 @@
 #include <string.h>
 
 /* Function Declarations */
-void nlStrainDisplacment(const emxArray_real_T *temp, const emxArray_real_T
-  *FT_int, emxArray_real_T *BN);
+void emxEnsureCapacity_real_T(emxArray_real_T *emxArray, int32_T oldNumel);
+void emxFree_real_T(emxArray_real_T **pEmxArray);
+void emxInit_real_T(emxArray_real_T **pEmxArray, int32_T numDimensions,
+                    boolean_T doPush);
 
-/* End of code generation (nlStrainDisplacment.h) */
+/* End of code generation (nlStrainDisplacment_emxutil.h) */

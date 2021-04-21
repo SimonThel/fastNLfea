@@ -12,7 +12,6 @@
 #pragma once
 
 /* Include files */
-#include "nlStrainDisplacment_types.h"
 #include "rtwtypes.h"
 #include "emlrt.h"
 #include "mex.h"
@@ -25,7 +24,7 @@
 MEXFUNCTION_LINKAGE void mexFunction(int32_T nlhs, mxArray *plhs[], int32_T nrhs,
   const mxArray *prhs[]);
 emlrtCTX mexFunctionCreateRootTLS(void);
-void nlStrainDisplacment_mexFunction(nlStrainDisplacmentStackData *SD, int32_T
-  nlhs, mxArray *plhs[1], int32_T nrhs, const mxArray *prhs[2]);
+void nlStrainDisplacment_mexFunction(int32_T nlhs, mxArray *plhs[1], int32_T
+  nrhs, const mxArray *prhs[2]);
 
 /* End of code generation (_coder_nlStrainDisplacment_mex.h) */

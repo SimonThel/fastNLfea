@@ -15,28 +15,22 @@
 #include "nlStrainDisplacment_data.h"
 #include "nlStrainDisplacment_initialize.h"
 #include "nlStrainDisplacment_terminate.h"
-#include "nlStrainDisplacment_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Definitions */
 void mexFunction(int32_T nlhs, mxArray *plhs[], int32_T nrhs, const mxArray
                  *prhs[])
 {
-  nlStrainDisplacmentStackData *c_nlStrainDisplacmentStackDataG = NULL;
-  c_nlStrainDisplacmentStackDataG = (nlStrainDisplacmentStackData *)
-    emlrtMxCalloc(1, (size_t)1U * sizeof(nlStrainDisplacmentStackData));
   mexAtExit(&nlStrainDisplacment_atexit);
 
   /* Module initialization. */
   nlStrainDisplacment_initialize();
 
   /* Dispatch the entry-point. */
-  nlStrainDisplacment_mexFunction(c_nlStrainDisplacmentStackDataG, nlhs, plhs,
-    nrhs, prhs);
+  nlStrainDisplacment_mexFunction(nlhs, plhs, nrhs, prhs);
 
   /* Module termination. */
   nlStrainDisplacment_terminate();
-  emlrtMxFree(c_nlStrainDisplacmentStackDataG);
 }
 
 emlrtCTX mexFunctionCreateRootTLS(void)
@@ -45,8 +39,8 @@ emlrtCTX mexFunctionCreateRootTLS(void)
   return emlrtRootTLSGlobal;
 }
 
-void nlStrainDisplacment_mexFunction(nlStrainDisplacmentStackData *SD, int32_T
-  nlhs, mxArray *plhs[1], int32_T nrhs, const mxArray *prhs[2])
+void nlStrainDisplacment_mexFunction(int32_T nlhs, mxArray *plhs[1], int32_T
+  nrhs, const mxArray *prhs[2])
 {
   const mxArray *outputs[1];
 
@@ -63,7 +57,7 @@ void nlStrainDisplacment_mexFunction(nlStrainDisplacmentStackData *SD, int32_T
   }
 
   /* Call the function. */
-  nlStrainDisplacment_api(SD, prhs, outputs);
+  nlStrainDisplacment_api(prhs, outputs);
 
   /* Copy over outputs to the caller. */
   emlrtReturnArrays(1, plhs, outputs);

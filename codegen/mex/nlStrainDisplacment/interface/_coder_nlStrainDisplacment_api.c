@@ -13,124 +13,149 @@
 #include "_coder_nlStrainDisplacment_api.h"
 #include "nlStrainDisplacment.h"
 #include "nlStrainDisplacment_data.h"
+#include "nlStrainDisplacment_emxutil.h"
 #include "nlStrainDisplacment_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Declarations */
-static real_T (*b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
-  *parentId))[5760000];
-static real_T (*c_emlrt_marshallIn(const mxArray *FT_int, const char_T
-  *identifier))[720000];
-static real_T (*d_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
-  *parentId))[720000];
-static real_T (*e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier *
-  msgId))[5760000];
-static real_T (*emlrt_marshallIn(const mxArray *temp, const char_T *identifier))
-  [5760000];
-static const mxArray *emlrt_marshallOut(const real_T u[11520000]);
-static real_T (*f_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier *
-  msgId))[720000];
+static void b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
+  *parentId, emxArray_real_T *y);
+static void c_emlrt_marshallIn(const mxArray *FT_int, const char_T *identifier,
+  emxArray_real_T *y);
+static void d_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
+  *parentId, emxArray_real_T *y);
+static void e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
+  *msgId, emxArray_real_T *ret);
+static void emlrt_marshallIn(const mxArray *temp, const char_T *identifier,
+  emxArray_real_T *y);
+static const mxArray *emlrt_marshallOut(const emxArray_real_T *u);
+static void f_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
+  *msgId, emxArray_real_T *ret);
 
 /* Function Definitions */
-static real_T (*b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
-  *parentId))[5760000]
+static void b_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
+  *parentId, emxArray_real_T *y)
 {
-  real_T (*y)[5760000];
-  y = e_emlrt_marshallIn(emlrtAlias(u), parentId);
+  e_emlrt_marshallIn(emlrtAlias(u), parentId, y);
   emlrtDestroyArray(&u);
-  return y;
 }
-  static real_T (*c_emlrt_marshallIn(const mxArray *FT_int, const char_T
-  *identifier))[720000]
+
+static void c_emlrt_marshallIn(const mxArray *FT_int, const char_T *identifier,
+  emxArray_real_T *y)
 {
   emlrtMsgIdentifier thisId;
-  real_T (*y)[720000];
   thisId.fIdentifier = (const char_T *)identifier;
   thisId.fParent = NULL;
   thisId.bParentIsCell = false;
-  y = d_emlrt_marshallIn(emlrtAlias(FT_int), &thisId);
+  d_emlrt_marshallIn(emlrtAlias(FT_int), &thisId, y);
   emlrtDestroyArray(&FT_int);
-  return y;
 }
 
-static real_T (*d_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
-  *parentId))[720000]
+static void d_emlrt_marshallIn(const mxArray *u, const emlrtMsgIdentifier
+  *parentId, emxArray_real_T *y)
 {
-  real_T (*y)[720000];
-  y = f_emlrt_marshallIn(emlrtAlias(u), parentId);
+  f_emlrt_marshallIn(emlrtAlias(u), parentId, y);
   emlrtDestroyArray(&u);
-  return y;
 }
-  static real_T (*e_emlrt_marshallIn(const mxArray *src, const
-  emlrtMsgIdentifier *msgId))[5760000]
+
+static void e_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
+  *msgId, emxArray_real_T *ret)
 {
-  static const int32_T dims[4] = { 3, 24, 10000, 8 };
+  static const int32_T dims[4] = { 3, 24, -1, 8 };
 
-  real_T (*ret)[5760000];
-  emlrtCheckBuiltInR2012b(emlrtRootTLSGlobal, msgId, src, "double", false, 4U,
-    dims);
-  ret = (real_T (*)[5760000])emlrtMxGetData(src);
+  int32_T iv[4];
+  int32_T i;
+  const boolean_T bv[4] = { false, false, true, false };
+
+  emlrtCheckVsBuiltInR2012b(emlrtRootTLSGlobal, msgId, src, "double", false, 4U,
+    dims, &bv[0], iv);
+  ret->allocatedSize = iv[0] * iv[1] * iv[2] * iv[3];
+  i = ret->size[0] * ret->size[1] * ret->size[2] * ret->size[3];
+  ret->size[0] = iv[0];
+  ret->size[1] = iv[1];
+  ret->size[2] = iv[2];
+  ret->size[3] = iv[3];
+  emxEnsureCapacity_real_T(ret, i);
+  ret->data = (real_T *)emlrtMxGetData(src);
+  ret->canFreeData = false;
   emlrtDestroyArray(&src);
-  return ret;
 }
 
-static real_T (*emlrt_marshallIn(const mxArray *temp, const char_T *identifier))
-  [5760000]
+static void emlrt_marshallIn(const mxArray *temp, const char_T *identifier,
+  emxArray_real_T *y)
 {
   emlrtMsgIdentifier thisId;
-  real_T (*y)[5760000];
   thisId.fIdentifier = (const char_T *)identifier;
   thisId.fParent = NULL;
   thisId.bParentIsCell = false;
-  y = b_emlrt_marshallIn(emlrtAlias(temp), &thisId);
+  b_emlrt_marshallIn(emlrtAlias(temp), &thisId, y);
   emlrtDestroyArray(&temp);
-  return y;
 }
-  static const mxArray *emlrt_marshallOut(const real_T u[11520000])
+
+static const mxArray *emlrt_marshallOut(const emxArray_real_T *u)
 {
   static const int32_T iv[4] = { 0, 0, 0, 0 };
-
-  static const int32_T iv1[4] = { 6, 24, 10000, 8 };
 
   const mxArray *m;
   const mxArray *y;
   y = NULL;
   m = emlrtCreateNumericArray(4, &iv[0], mxDOUBLE_CLASS, mxREAL);
-  emlrtMxSetData((mxArray *)m, (void *)&u[0]);
-  emlrtSetDimensions((mxArray *)m, iv1, 4);
+  emlrtMxSetData((mxArray *)m, &u->data[0]);
+  emlrtSetDimensions((mxArray *)m, u->size, 4);
   emlrtAssign(&y, m);
   return y;
 }
 
-static real_T (*f_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier *
-  msgId))[720000]
+static void f_emlrt_marshallIn(const mxArray *src, const emlrtMsgIdentifier
+  *msgId, emxArray_real_T *ret)
 {
-  static const int32_T dims[4] = { 3, 3, 10000, 8 };
+  static const int32_T dims[4] = { 3, 3, -1, 8 };
 
-  real_T (*ret)[720000];
-  emlrtCheckBuiltInR2012b(emlrtRootTLSGlobal, msgId, src, "double", false, 4U,
-    dims);
-  ret = (real_T (*)[720000])emlrtMxGetData(src);
+  int32_T iv[4];
+  int32_T i;
+  const boolean_T bv[4] = { false, false, true, false };
+
+  emlrtCheckVsBuiltInR2012b(emlrtRootTLSGlobal, msgId, src, "double", false, 4U,
+    dims, &bv[0], iv);
+  ret->allocatedSize = iv[0] * iv[1] * iv[2] * iv[3];
+  i = ret->size[0] * ret->size[1] * ret->size[2] * ret->size[3];
+  ret->size[0] = iv[0];
+  ret->size[1] = iv[1];
+  ret->size[2] = iv[2];
+  ret->size[3] = iv[3];
+  emxEnsureCapacity_real_T(ret, i);
+  ret->data = (real_T *)emlrtMxGetData(src);
+  ret->canFreeData = false;
   emlrtDestroyArray(&src);
-  return ret;
 }
-  void nlStrainDisplacment_api(nlStrainDisplacmentStackData *SD, const mxArray *
-  const prhs[2], const mxArray *plhs[1])
+
+void nlStrainDisplacment_api(const mxArray * const prhs[2], const mxArray *plhs
+  [1])
 {
-  real_T (*BN)[11520000];
-  real_T (*temp)[5760000];
-  real_T (*FT_int)[720000];
-  BN = (real_T (*)[11520000])mxMalloc(sizeof(real_T [11520000]));
+  emxArray_real_T *BN;
+  emxArray_real_T *FT_int;
+  emxArray_real_T *temp;
+  emlrtHeapReferenceStackEnterFcnR2012b(emlrtRootTLSGlobal);
+  emxInit_real_T(&temp, 4, true);
+  emxInit_real_T(&FT_int, 4, true);
+  emxInit_real_T(&BN, 4, true);
 
   /* Marshall function inputs */
-  temp = emlrt_marshallIn(emlrtAlias(prhs[0]), "temp");
-  FT_int = c_emlrt_marshallIn(emlrtAlias(prhs[1]), "FT_int");
+  temp->canFreeData = false;
+  emlrt_marshallIn(emlrtAlias(prhs[0]), "temp", temp);
+  FT_int->canFreeData = false;
+  c_emlrt_marshallIn(emlrtAlias(prhs[1]), "FT_int", FT_int);
 
   /* Invoke the target function */
-  nlStrainDisplacment(SD, *temp, *FT_int, *BN);
+  nlStrainDisplacment(temp, FT_int, BN);
 
   /* Marshall function outputs */
-  plhs[0] = emlrt_marshallOut(*BN);
+  BN->canFreeData = false;
+  plhs[0] = emlrt_marshallOut(BN);
+  emxFree_real_T(&BN);
+  emxFree_real_T(&FT_int);
+  emxFree_real_T(&temp);
+  emlrtHeapReferenceStackLeaveFcnR2012b(emlrtRootTLSGlobal);
 }
 
 /* End of code generation (_coder_nlStrainDisplacment_api.c) */
