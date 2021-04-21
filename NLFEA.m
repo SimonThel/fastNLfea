@@ -25,12 +25,10 @@ function U = NLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, ...
 %       XYZ - node postions [(nelx+1)*(nely+1)*(nelz+1) x 3 double]
 %       LE - node conectivity [nelx*nely*nelz x 8 double]
 %% Initialize some variables
-global DISPDD DISPTD FORCE GKF          % Global variables
 [NUMNP, NDOF] = size(XYZ);              % Analysis parameters
 NE = size(LE,1);
 NEQ = NDOF*NUMNP;
 DISPTD=zeros(NEQ,1);                    % Nodal displacement
-DISPDD=zeros(NEQ,1);                    % Nodal displacement increment
 % energy interpolation parameters
 beta = 500;
 eta = 0.01;
@@ -48,6 +46,13 @@ TDELTA = TIMEI - TIMEF;                 % time interval for laod step
 ITOL = 1;                               % Bisection level
 TARY=zeros(NTOL,1);                     % Time stamps for bisections
 [lambda, mu, ETAN, DET, BG, gSHPDT, temp] = lin_assembly(nu, E, Emin, xPhys, penal, NE, XYZ, LE);
+GDOF = reshape ([1 + (LE-1)*NDOF; 2 + (LE-1)*NDOF; 3 + (LE-1)*NDOF],NE, 24);
+iK = reshape(repmat(GDOF, 1,24)', 576*NE, 1);
+jK = reshape(repmat(reshape(GDOF',1, 24*NE), 24, 1), 1 , 576*NE)';
+lK = reshape(permute(GDOF,[2 1 3 4]), 24*NE, 1);
+FIXEDDOF=NDOF*(SDISPT(:,1)-1)+SDISPT(:,2); 
+ALLDOF=1:NEQ;
+FREEDOF=setdiff(ALLDOF,FIXEDDOF); 
 %% Load increment loop
 ISTEP = -1; FLAG10 = 1;
 while(FLAG10 == 1)                      % Solution has been converged
@@ -97,8 +102,7 @@ while(FLAG10 == 1)                      % Solution has been converged
         % Load factor and prescribed displacements
         FACTOR = CUR1 + (TIME-TIMEF)/TDELTA*(CUR2-CUR1);
         %% Convergence iteration 
-        ITER = 0;
-        DISPDD = zeros(NEQ,1); 
+        ITER = 0; 
         while(FLAG20 == 1)
             FLAG20 = 0;
             ITER = ITER + 1;
@@ -107,16 +111,13 @@ while(FLAG10 == 1)                      % Solution has been converged
                 error('Iteration limit exceeds'); 
             end
             % Assemble K and F
-            [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp);
+            [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp, iK, jK, lK);
             % Increase external force
             if size(EXTFORCE,1)>0
                 LOC = NDOF*(EXTFORCE(:,1)-1)+EXTFORCE(:,2);
                 FORCE = FORCE + fsparse(LOC,1,FACTOR*EXTFORCE(:,3), [NEQ 1]);
             end
             % Check convergence
-            FIXEDDOF=NDOF*(SDISPT(:,1)-1)+SDISPT(:,2); 
-            ALLDOF=1:NEQ;
-            FREEDOF=setdiff(ALLDOF,FIXEDDOF); 
             if(ITER>1)
                 RESN=max(abs(FORCE(FREEDOF)));
                 OUTPUT(1, ITER, RESN, TIME, DELTA) 
@@ -145,7 +146,6 @@ while(FLAG10 == 1)                      % Solution has been converged
             if(FLAG11 == 0)
                 % assuming symmetry of tangent stiffness matrix
                 SOLN = decomposition(GKF(FREEDOF, FREEDOF), 'chol','upper')\FORCE(FREEDOF);
-                DISPDD(FREEDOF) = DISPDD(FREEDOF) + SOLN; 
                 DISPTD(FREEDOF) = DISPTD(FREEDOF) + SOLN; 
                 FLAG20 = 1;
             else

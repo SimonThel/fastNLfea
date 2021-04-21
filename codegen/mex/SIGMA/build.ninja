@@ -1,0 +1,48 @@
+# CompilerName=clang
+# Mode=optim
+ninja_required_version = 1.3
+
+# Basic folders
+root = .
+builddir = $root/build/maci64
+matlabdir = /Applications/MATLAB_R2020b.app
+startdir = /Users/simonthel/Documents/fastNLfea
+
+# Toolchain information
+cc = /usr/bin/xcrun -sdk macosx11.1 clang
+cxx = /usr/bin/xcrun -sdk macosx11.1 clang++
+linker = /usr/bin/xcrun -sdk macosx11.1 clang
+linkerxx = /usr/bin/xcrun -sdk macosx11.1 clang++
+
+cflags =  -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I "$root" -I "$startdir" -I "$root/interface" -I "$matlabdir/extern/include" -I "." -DMODEL=SIGMA_mex -c 
+
+cxxflags =  -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -fobjc-arc -std=c++11 -stdlib=libc++ -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c++11 -I "$root" -I "$startdir" -I "$root/interface" -I "$matlabdir/extern/include" -I "." -DMODEL=SIGMA_mex -c 
+
+ldflags =  -Wl,-twolevel_namespace -undefined error -arch x86_64 -mmacosx-version-min=10.14 -Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -bundle   -L"$matlabdir/bin/maci64" -lmx -lmex -lmat -lc++  -Wl,-rpath,@loader_path -o SIGMA_mex.mexmaci64 -lemlrt -lcovrt -lut -lmwmathutil  -Wl,-exported_symbols_list,SIGMA_mex.map
+
+# Build Rules
+rule cc
+    command = $cc $cflags $in -o $out
+
+rule cxx
+    command = $cxx $cxxflags $in -o $out
+
+rule link
+    command = $linker $in $ldflags
+
+rule linkxx
+    command = $linkerxx $in $ldflags
+
+# Build
+build $builddir/SIGMA_data.o : cc $root/SIGMA_data.c
+build $builddir/rt_nonfinite.o : cc $root/rt_nonfinite.c
+build $builddir/SIGMA_initialize.o : cc $root/SIGMA_initialize.c
+build $builddir/SIGMA_terminate.o : cc $root/SIGMA_terminate.c
+build $builddir/SIGMA.o : cc $root/SIGMA.c
+build $builddir/_coder_SIGMA_api.o : cc $root/interface/_coder_SIGMA_api.c
+build $builddir/_coder_SIGMA_mex.o : cc $root/interface/_coder_SIGMA_mex.c
+build $builddir/_coder_SIGMA_info.o : cc $root/interface/_coder_SIGMA_info.c
+build $builddir/c_mexapi_version.o : cc $matlabdir/extern/version/c_mexapi_version.c
+
+# Link
+build $root/SIGMA_mex.mexmaci64 : link $builddir/SIGMA_data.o $builddir/rt_nonfinite.o $builddir/SIGMA_initialize.o $builddir/SIGMA_terminate.o $builddir/SIGMA.o $builddir/_coder_SIGMA_api.o $builddir/_coder_SIGMA_mex.o $builddir/_coder_SIGMA_info.o $builddir/c_mexapi_version.o 

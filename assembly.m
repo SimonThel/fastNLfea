@@ -1,4 +1,4 @@
-function [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp)
+function [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF, LE, lambda, mu, ETAN, DET, BG, gSHPDT, temp, iK, jK, lK)
 %***********************************************************************
 %  MAIN PROGRAM COMPUTING GLOBAL STIFFNESS MATRIX RESIDUAL FORCE 
 %***********************************************************************
@@ -28,33 +28,22 @@ function [FORCE, GKF] = assembly(DISPTD, xPhys, penal, beta, eta, NE, NEQ, NDOF,
     epsilon = 0.5*(d0U+permute(d0U,[2 1 3 4]));
     epsilon_int = 0.5*(d0U_int+permute(d0U_int, [2 1 3 4]));
     %% nonlinear displacement-strain matrix eq. 3.142
-    BN = [temp.*repmat(FT_int, 1, 8, 1, 1); ...
-        temp.*repmat(circshift(FT_int,[-1 0 0 0]), 1, 8, 1, 1)...
-        + circshift(temp,[-1 0 0 0]).*repmat(FT_int, 1, 8, 1, 1)];
-    %BNT = permute(BN,[2 1 3 4]);
-        %% Compute stress
-    % assumption of plane stress
+    BN = nlStrainDisplacment_mex(temp, FT_int);
+    %% Compute stress
     tr = repmat(eye(3), 1, 1, NE, 8);
-    % second piola kirchhoff stress tensor (nonlinear)
+    % second piola kirchhoff stress tensor
     nintSTRESS = (repmat(lambda.*sum(E_int.*tr, [1 2]),3,3,1,1) .* tr + 2*repmat(mu,3,3,1,1).*E_int);
     lSTRESS = (repmat(lambda.*sum(epsilon.*tr, [1 2]),3,3,1,1) .* tr + 2*repmat(mu,3,3,1,1).*epsilon);
     lintSTRESS = (repmat(lambda.*sum(epsilon_int.*tr, [1 2]),3,3,1,1) .* tr + 2*repmat(mu,3,3,1,1).*epsilon_int);
     STRESS = nintSTRESS + lSTRESS - lintSTRESS;
+    SHEAD = SIGMA_mex(nintSTRESS, NE);
     % voigt notation of stress matrix
     STRESSv = [STRESS(1,1,:,:); STRESS(2,2,:,:); STRESS(3,3,:,:); ...
         STRESS(2,1,:,:); STRESS(3,2,:,:); STRESS(1,3,:,:)];
     %% compute internal force vector 
     gforce = DET * sum(pagemtimes(BN,'transpose', STRESSv,'none'),4);
+    FORCE = fsparse(lK, 1, - reshape(permute(gforce,[2 1 3 4]), 24*NE, 1), [NEQ 1]);
     %% compute tangent stiffness  
-    SHEAD = [nintSTRESS zeros(3, 6, NE, 8); ...
-        zeros(3, 3, NE, 8) nintSTRESS zeros( 3, 3, NE, 8); ...
-        zeros(3, 6, NE, 8) nintSTRESS];
     gstiff = DET*sum(pagemtimes(pagemtimes(BN,'transpose', ETAN,'none'),BN) ...
         + pagemtimes(pagemtimes(BG, 'transpose', SHEAD, 'none'),BG),4);
-    %% assemble internal force vector and stiffness matrix     
-    FORCE = fsparse(reshape(permute(GDOF,[2 1 3 4]), 24*NE, 1), 1, ...
-        - reshape(permute(gforce,[2 1 3 4]), 24*NE, 1), [NEQ 1]);
-    GKF = fsparse(reshape(repmat(GDOF, 1,24)', 576*NE, 1), ...
-        reshape(repmat(reshape(GDOF',1, 24*NE), 24, 1), 1 , 576*NE)', ...
-        reshape(gstiff, 576*NE ,1), [NEQ NEQ]);
-end
+    GKF = fsparse(iK, jK, reshape(gstiff, 576*NE ,1), [NEQ NEQ]);

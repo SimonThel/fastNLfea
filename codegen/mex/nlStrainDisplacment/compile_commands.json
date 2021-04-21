@@ -1,0 +1,56 @@
+[
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  nlStrainDisplacment_data.c -o build/maci64/nlStrainDisplacment_data.o",
+    "file": "nlStrainDisplacment_data.c",
+    "output": "build/maci64/nlStrainDisplacment_data.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  rt_nonfinite.c -o build/maci64/rt_nonfinite.o",
+    "file": "rt_nonfinite.c",
+    "output": "build/maci64/rt_nonfinite.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  nlStrainDisplacment_initialize.c -o build/maci64/nlStrainDisplacment_initialize.o",
+    "file": "nlStrainDisplacment_initialize.c",
+    "output": "build/maci64/nlStrainDisplacment_initialize.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  nlStrainDisplacment_terminate.c -o build/maci64/nlStrainDisplacment_terminate.o",
+    "file": "nlStrainDisplacment_terminate.c",
+    "output": "build/maci64/nlStrainDisplacment_terminate.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  nlStrainDisplacment.c -o build/maci64/nlStrainDisplacment.o",
+    "file": "nlStrainDisplacment.c",
+    "output": "build/maci64/nlStrainDisplacment.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  interface/_coder_nlStrainDisplacment_api.c -o build/maci64/_coder_nlStrainDisplacment_api.o",
+    "file": "interface/_coder_nlStrainDisplacment_api.c",
+    "output": "build/maci64/_coder_nlStrainDisplacment_api.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  interface/_coder_nlStrainDisplacment_mex.c -o build/maci64/_coder_nlStrainDisplacment_mex.o",
+    "file": "interface/_coder_nlStrainDisplacment_mex.c",
+    "output": "build/maci64/_coder_nlStrainDisplacment_mex.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  interface/_coder_nlStrainDisplacment_info.c -o build/maci64/_coder_nlStrainDisplacment_info.o",
+    "file": "interface/_coder_nlStrainDisplacment_info.c",
+    "output": "build/maci64/_coder_nlStrainDisplacment_info.o"
+  },
+  {
+    "directory": "/Users/simonthel/Documents/fastNLfea/codegen/mex/nlStrainDisplacment",
+    "command": "/usr/bin/xcrun -sdk macosx11.1 clang -fno-common -arch x86_64 -mmacosx-version-min=10.14 -fexceptions -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -DMATLAB_MEX_FILE -O2 -fwrapv -DNDEBUG -std=c99 -I \".\" -I \"/Users/simonthel/Documents/fastNLfea\" -I \"./interface\" -I \"/Applications/MATLAB_R2020b.app/extern/include\" -I \".\" -DMODEL=nlStrainDisplacment_mex -c  /Applications/MATLAB_R2020b.app/extern/version/c_mexapi_version.c -o build/maci64/c_mexapi_version.o",
+    "file": "/Applications/MATLAB_R2020b.app/extern/version/c_mexapi_version.c",
+    "output": "build/maci64/c_mexapi_version.o"
+  }
+]
