@@ -7,22 +7,19 @@ Fast and efficient Matlab code for geometric nonlinear Finite Element Analysis t
 * Matlab 2020b or newer 
 * `fsparse` from Stefan Engblom's Matlab libraries [stenglib](https://github.com/stefanengblom/stenglib)
 
-If you Matlab 2020a or earlier, please use the code in the branch `mex-development`. This version does not use the newly introduces `pagemtimes` function. However, this implementation relies on `for`-loops for the matrix multiplication and, thus, is much slower (around 4 to 5 times). From this code, you can derive C/C++ code to run on other machines.  
+If you have Matlab 2020a or earlier, please use the code in the branch `mex-development`. This version does not use the newly introduces `pagemtimes` function. However, this implementation relies on `for`-loops for the matrix multiplication and, thus, is much slower (around 4 to 5 times). From this code, you can derive C/C++ code to run on other machines.  
 
-Please note the different license type of the C files. These files are only for academic use, because an academic license of Matlab was used for generating them.
+Please note the different license type of the C files. These files are only for academic application, because an academic license of Matlab was used to generate them.
 
 ## Current Capabilities 
 
-This code solves fast and efficiently geometric nonlinear FEA problems with a linear material model. **fasNLfea** is successfully applied to initial wing design using topology optimization with predefined nonlinear behavior. This code is tailored for topology optimization. It assumes a uniform mesh with the dimension `nelx*nely*nelz`. Every element has a density `xPhys`. This density describes the topology of the domain. The element stiffness is determined by the SIMP material model. An energy interpolation scheme reduces mesh distortion for low stiffness/void elements.
+This code solves fast and efficiently geometric nonlinear FEA problems with a linear material model (St. Venant Kirchhoff). **fasNLfea** is successfully applied to the initial wing design using topology optimization with predefined nonlinear behavior. This code is tailored for topology optimization. It assumes a uniform mesh with the dimension `nelx*nely*nelz`. Every element has a density `xPhys`. This density describes the topology of the domain. The element stiffness is determined by the SIMP material model. An energy interpolation scheme reduces mesh distortion for low stiffness/void elements.
 
 **fasNLfea** is a great starting point for researchers and students in geometric nonlinear topology optimization. Its computational efficiency enables the solution of topology optimization problems within hours instead of days.
 
 ## Future Features/Development
 
-1. Improving computation time
-2. Testing of 3-dim grids
-3. Adding and publishing validation (only validation for 2-dim case in thesis)
-4. Adding sensitivity analysis
+1. Adding sensitivity analysis
 
 ## References
 
