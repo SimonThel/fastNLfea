@@ -17,6 +17,8 @@ This code solves fast and efficiently geometric nonlinear FEA problems with a li
 
 **fasNLfea** is a great starting point for researchers and students in geometric nonlinear topology optimization. Its computational efficiency enables the solution of topology optimization problems within hours instead of days.
 
+The results of **fasNLfea** have been [validated](https://github.com/SimonThel/fastNLfea/blob/main/vailidation/finite_element/VALIDATION.md) with the commercial software Abaqus and examples from literature.
+
 ## Future Features/Development
 
 1. Adding sensitivity analysis
