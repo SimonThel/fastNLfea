@@ -4,7 +4,7 @@
  The results of **fastNLfea** are compared to the commercial software Abaqus. Two load cases are compared: 
  * Load case 1 (L1) is a slim cantilever, which is clamped at `y=0`. On its other side an asymmetric area load is applied. 
    This load case tests the capabilities of **fastNLfea** display roation/torsion.
- * Load case 1 (L1) is a short cantilever, which si clamped at `y=0`. A symmetric area load is applied on the free end of the beam. 
+ * Load case 2 (L2) is a short cantilever, which si clamped at `y=0`. A symmetric area load is applied on the free end of the beam. 
    This load case was chosen to rule out locking as a possibility for different results. Two different resolutions are investigated to analyze convergence.
  
  ## Results
