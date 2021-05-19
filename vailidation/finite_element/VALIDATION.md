@@ -15,6 +15,8 @@
  [hypoelastic](https://en.wikipedia.org/wiki/Hypoelastic_material) material based on a linear relation between the Cauchy stress and the engineering strain. St. Venant-Kirchhoff material model is not implemented in Abaqus.
  
  
+ To replicate the results, this folder contains the Matlab and the Abaqus input files. 
+ 
  # Validation using Literature 
  
  The file `one_element.m` represents the uniaxial bar example in [1] (example 3.8, p. 170). 
