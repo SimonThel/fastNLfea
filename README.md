@@ -2,14 +2,14 @@
 
 Fast and efficient Matlab code for geometric nonlinear Finite Element Analysis tailored for Topology Optimization.
 
-## Requierments
+## Requirements
 
 * Matlab 2020b or newer 
 * `fsparse` from Stefan Engblom's Matlab libraries [stenglib](https://github.com/stefanengblom/stenglib)
 
 If you have Matlab 2020a or earlier, please use the code in the branch `mex-development`. This version does not use the newly introduces `pagemtimes` function. However, this implementation relies on `for`-loops for the matrix multiplication and, thus, is much slower (around 4 to 5 times). From this code, you can derive C/C++ code to run on other machines.  
 
-Please note the different license type of the C files. These files are only for academic application, because an academic license of Matlab was used to generate them.
+Please note the different license type of the C files. These files are only for an academic application because an academic license of Matlab was used to generate them.
 
 ## Current Capabilities 
 
@@ -17,7 +17,7 @@ This code solves fast and efficiently geometric nonlinear FEA problems with a li
 
 **fasNLfea** is a great starting point for researchers and students in geometric nonlinear topology optimization. Its computational efficiency enables the solution of topology optimization problems within hours instead of days.
 
-The results of **fasNLfea** have been [validated](https://github.com/SimonThel/fastNLfea/blob/main/vailidation/finite_element/VALIDATION.md) with the commercial software Abaqus and examples from literature.
+The results of **fasNLfea** have been [validated](https://github.com/SimonThel/fastNLfea/blob/main/vailidation/finite_element/VALIDATION.md) with the commercial software Abaqus and examples from the literature.
 
 ## Future Features/Development
 
