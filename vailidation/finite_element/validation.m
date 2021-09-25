@@ -1,5 +1,5 @@
 clear
-load('L2_highres.mat')
+load('L2_lowres.mat')
 
 nodes.Z(nodes.Z < 2e-6) = 0;
 nodes.Y(nodes.Y < 2e-6) = 0;

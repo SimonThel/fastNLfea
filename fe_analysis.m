@@ -54,19 +54,20 @@ for n=1:nnodes
 end
 total_force = 6;
 EXTFORCE(:,3) = total_force*EXTFORCE(:,3)/sum(EXTFORCE(:,3));
-
+quad_move = 100;
 %% Material properties and general FE-parameters
-nu = 0.3; E = 1.0; Emin = 1e-9;
+nu = 0.3; E = 1.0; Emin = 1e-9; 
 % Set program parameters
 ITRA=10; ATOL=1.0E4; NTOL=20; TOL=5e-6;
 %% setting up densities
 xPhys = ones(nEl, 1);
 tic
-U = fastNLFEA(single(ITRA), single(TOL), single(ATOL), single(NTOL), single(TIMS), single(nu), single(E), single(Emin), single(penal), single(xPhys), ...
-    single(EXTFORCE), single(SDISPT), single(XYZ), single(madMat));
+[U, c_lin, c_quad, dc_lin, dc_quad] ...
+    = fastNLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, xPhys, ...
+    EXTFORCE, SDISPT, XYZ, madMat, quad_move);
 toc
 
 tic
 figure
-display_3D(xPhys, U, XYZ, madMat, nEl, [0.6 0 0])
+display_3D_top(xPhys, U, XYZ, madMat, nEl, 0.3)
 toc
