@@ -10,6 +10,15 @@ function [U, U_points, c_stiff, dc_stiff, c_diff, dc_diff, g1, g2, dg1, dg2, fai
 % Variable Descritption:
 %   Output:
 %       U - vector containing the deformation of all DOFs
+%       U_points - displacement at fdpoints
+%       c_stiff - stiffness part of objective funciton
+%       dc_stiff - sensitivity of c_stiff
+%       c_diff - displacement difference part of objective function
+%       dc_diff - sensitivity of c_diff
+%       g1 - upper displacement constraint
+%       g2 - lower displacement constraint
+%       dg1 - sensitivity of g1
+%       dg2 - sensitivity of g2
 %   Input:
 %       ITRA - max. num. of newton iterations [double]
 %       ATOL - divergence tolerance for bisection [double]
@@ -25,6 +34,8 @@ function [U, U_points, c_stiff, dc_stiff, c_diff, dc_diff, g1, g2, dg1, dg2, fai
 %       SDISPT - fixed displacements [m x 3 double]
 %       XYZ - node postions [(nelx+1)*(nely+1)*(nelz+1) x 3 double]
 %       LE - node conectivity [nelx*nely*nelz x 8 double]
+%       fdpoints - node indecies where displacement is evaluated
+%       g_dist - allowed difference of displacement constraint [double]
 %% Initialize some variables
 [NUMNP, NDOF] = size(XYZ);              % Analysis parameters
 NE = size(LE,1);
@@ -181,12 +192,10 @@ while(FLAG10 == 1)                      % Solution has been converged
     end
     %% Compute Sensitvity only for requested load steps
     if ismember(TIME, TIMS(1):TIMS(3):TIMS(2))
-        % evaluate objective function
         L_stiff = zeros(NEQ,1); L_LE = zeros(NEQ,1); L_TE = zeros(NEQ,1);
         L_stiff(LOC) = EXTFORCE(:,3); L_LE(fdpoints(1)) = 1; L_TE(fdpoints(2)) = 1;
         c_i_stiff = (DISPTD'*L_stiff)^2;
         U_LE = DISPTD'*L_LE; U_TE = DISPTD'*L_TE;
-        
         c_stiff = c_stiff + c_i_stiff;
         % evaluate displacement constraint function
         dforce = sensitvity(DET, nu, E0, Emin, lambda, mu, xPhys, penal, eta, beta, NE, ...

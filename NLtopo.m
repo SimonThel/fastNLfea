@@ -1,4 +1,21 @@
-function perf = NLtopo(volfrac, penal, decay_q, decay_r, decay_s, decay_u, plotting)
+function perf = NLtopo(volfrac, penal, decay_q, i_crit, decay_r, decay_s, plotting)
+%********************************************************************
+% MAIN PROGRAM FOR TOPOLOGY OPTIMIZATION
+%********************************************************************
+% Purpose:
+%       Start topology optimization of wing with passive load alleviation
+% Variable Descritption:
+%   Output:
+%       perf - performance value of topology optimization (can be used for 
+%           hyperparameter optimization)
+%   Input:
+%       volfrac - volume fraction
+%       penal - SIMP parameter
+%       decay_q - CMDW parameter q
+%       i_crit - CMD parameter i_crit
+%       decay_r - CMDW parameter r
+%       decay_s - CMDW parameter s
+%       plotting - bool deciding if geometry is plotted in every iteration
 %% setting general variables
 nelx = 150;
 nely = 75;
@@ -79,7 +96,6 @@ fdpoints = [3*fd_LE, 3*fd_TE];
 nu = 0.34; E = 70e8 ; Emin = 70e-1;
 % Set program parameters
 ITRA=10; ATOL=1.0E5; NTOL=8; TOL=5e-3;
-%% Densities and boundaries
 %% design boundaries and initial material distribution
 x = reshape(repmat(volfrac*0.8,nEl, 1), nely, nelz, nelx);
 xmin = reshape(zeros(nEl, 1), nely, nelz, nelx); % lower bounds
@@ -141,8 +157,8 @@ v = (100/(volfrac*nelx*nely*nelz))*(sum(xPhys(:)) - volfrac*nelx*nely*nelz);
 %% Call nonlinear FE-Analysis
 [U, U_points, c_stiff, dc_stiff, c_diff, dc_diff, g1, g2, dg1, dg2, failed] = ...
     fastNLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E, Emin, penal, xPhys, EXTFORCE, SDISPT, XYZ, madMat, fdpoints, g_dist);
-c = CMDW(1, maxiter, decay_q, decay_r, decay_s, decay_u)*c_stiff + 1000*c_diff;
-dc = CMDW(1, maxiter, decay_q, decay_r, decay_s, decay_u)*dc_stiff + 1000*dc_diff;
+c = CMDW(1, maxiter, decay_q, i_crit, decay_r, decay_s)*c_stiff + 1000*c_diff;
+dc = CMDW(1, maxiter, decay_q, i_crit, decay_r, decay_s)*dc_stiff + 1000*dc_diff;
 g = [v; 10000*g1; 10000*g2];
 dg = [dv; 10000*dg1'; 10000*dg2'];
 if plotting
@@ -190,8 +206,8 @@ while iter < maxiter && ~failed
     if failed
         break
     end
-    c = CMDW(iter, maxiter, decay_q, decay_r, decay_s, decay_u)*c_stiff + 1000*c_diff;
-    dc = CMDW(iter, maxiter, decay_q, decay_r, decay_s, decay_u)*dc_stiff + 1000*dc_diff;
+    c = CMDW(iter, maxiter, decay_q, i_crit, decay_r, decay_s)*c_stiff + 1000*c_diff;
+    dc = CMDW(iter, maxiter, decay_q, i_crit, decay_r, decay_s)*dc_stiff + 1000*dc_diff;
     %% VOLUME CONSTRAINT
     dv = (100/(volfrac*nelx*nely*nelz))*ones(1, nelx*nely*nelz); % sensitivity of volume constraint with respect of physical density (must be changed for different filtering)
     v = (100 /(volfrac*nelx*nely*nelz))*(sum(xPhys(:)) - volfrac*nelx*nely*nelz);
