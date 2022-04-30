@@ -6,12 +6,12 @@ function [GKF, FORCE, BN, E, E_int, epsilon_int, epsilon] = assembly(DISPTD, xPh
     % Nodal coordinates and incremental displacements
     % Local to global mapping
     GDOF = reshape ([1 + (LE-1)*NDOF; 2 + (LE-1)*NDOF; 3 + (LE-1)*NDOF],NE, 24);
-    GDSP=reshape(DISPTD(GDOF)',NDOF,8,NE); % sum(GDSP(:)) ~= 0
+    GDSP=reshape(DISPTD(GDOF)',NDOF,8,NE);
     % Interpolation factor
     gamma = reshape((tanh(beta*eta) + tanh(beta*(xPhys.^penal - eta))) / ...
         (tanh(beta * eta) + tanh(beta*(1-eta))),1,1, NE);
     GDSP_int = repmat(gamma, 3, 8, 1).*GDSP;
-    % Deformation gradient see eq. 3.5
+    % Deformation gradient 
     d0U = permute(reshape(permute(reshape(pagemtimes(GDSP, gSHPDT), ...
         [3 1 3 8 NE]), [1 3 2 4 5]), [3 3 8 NE]), [1 2 4 3]);
     d0U_int = permute(reshape(permute(reshape(pagemtimes(GDSP_int, gSHPDT), ...
@@ -19,14 +19,14 @@ function [GKF, FORCE, BN, E, E_int, epsilon_int, epsilon] = assembly(DISPTD, xPh
     F = d0U + repmat(eye(3), 1, 1, NE, 8);
     F_int = d0U_int + repmat(eye(3), 1, 1, NE, 8);
     FT_int = permute(F_int, [2 1 3 4]);
-    % Lagrangian strain eq. 3.10
+    % Lagrangian strain
     E = 0.5*(pagemtimes(F, 'transpose', F, 'none') - repmat(eye(3), 1, 1, NE, 8));
     E_int = 0.5*(pagemtimes(FT_int, F_int) - repmat(eye(3), 1, 1, NE, 8));
     % split strain tensor into the parts for each integration point
     % infitismal (linear) strain tensor
     epsilon = 0.5*(d0U+permute(d0U,[2 1 3 4]));
     epsilon_int = 0.5*(d0U_int+permute(d0U_int, [2 1 3 4]));
-    %% nonlinear displacement-strain matrix eq. 3.142
+    %% nonlinear displacement-strain matrix
     BN = nlStrainDisplacment(temp, FT_int);
     %% Compute stress
     % second piola kirchhoff stress tensor

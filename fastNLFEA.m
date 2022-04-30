@@ -1,6 +1,6 @@
-function [U, c_lin, c_quad, dc_lin, dc_quad] ...
+function [U, U_points, c_stiff, dc_stiff, c_diff, dc_diff, g1, g2, dg1, dg2, failed] ...
     = fastNLFEA(ITRA, TOL, ATOL, NTOL, TIMS, nu, E0, Emin, penal, xPhys, ...
-    EXTFORCE, SDISPT, XYZ, LE, quad_move)
+    EXTFORCE, SDISPT, XYZ, LE, fdpoints, g_dist)
 %********************************************************************
 % MAIN PROGRAM FOR GEOMETRIC NONLINEAR PROBLEMS
 %********************************************************************
@@ -25,33 +25,21 @@ function [U, c_lin, c_quad, dc_lin, dc_quad] ...
 %       SDISPT - fixed displacements [m x 3 double]
 %       XYZ - node postions [(nelx+1)*(nely+1)*(nelz+1) x 3 double]
 %       LE - node conectivity [nelx*nely*nelz x 8 double]
-%% Convert to single to improve performance of arithmetric operations
-% ITRA = single(ITRA);
-% TOL = single(TOL);
-% ATOL = single(ATOL);
-% NTOL = single(NTOL);
-% TIMS = single(TIMS);
-% nu = single(nu);
-% E0 = single(E0);
-% Emin = single(Emin);
-% penal = single(penal);
-% xPhys = single(xPhys);
-% EXTFORCE = single(EXTFORCE);
-% SDISPT = single(SDISPT);
-% XYZ = single(XYZ);
-% LE = single(LE);
-% fdpoint = single(fdpoint);
-% U_pre = single(U_pre);
-% g_dist = single(g_dist);
-% iter = single(iter);
-% decay_q = single(decay_q);
-% decay_r = single(decay_r);
-% decay_s = single(decay_s);
 %% Initialize some variables
 [NUMNP, NDOF] = size(XYZ);              % Analysis parameters
 NE = size(LE,1);
 NEQ = int32(NDOF*NUMNP);
 DISPTD=zeros(NEQ,1);                    % Nodal displacement
+% initialize objective function and derivative
+c_stiff = 0;
+dc_stiff = zeros(NE,1);
+c_diff = 0;
+dc_diff = zeros(NE,1);
+g1 = 0;
+g2 = 0;
+dg1 = zeros(NE,1);
+dg2 = zeros(NE,1);
+U_points = zeros(2);
 % energy interpolation parameters
 beta = 500;
 eta = 0.01;
@@ -77,6 +65,7 @@ lK = (reshape(permute(GDOF,[2 1 3 4]), 24*NE, 1));
 FIXEDDOF=(NDOF*(SDISPT(:,1)-1)+SDISPT(:,2));
 ALLDOF=1:NEQ;
 FREEDOF=setdiff(ALLDOF,FIXEDDOF);
+failed = false;
 %% Load increment loop
 ISTEP = -1; FLAG10 = 1;
 while(FLAG10 == 1)                      % Solution has been converged
@@ -144,7 +133,7 @@ while(FLAG10 == 1)                      % Solution has been converged
             % Check convergence
             if(ITER>1)
                 RESN=max(abs(FORCE(FREEDOF)));
-                OUTPUT(1, ITER, RESN, TIME, DELTA)
+                %OUTPUT(1, ITER, RESN, TIME, DELTA)
                 if(RESN<double(TOL))
                     FLAG10 = 1;
                     break;
@@ -160,6 +149,9 @@ while(FLAG10 == 1)                      % Solution has been converged
                         TARY(ITOL) = TIME;
                         DISPTD=CDISP;
                         fprintf(1,'Not converged. Bisecting load increment %3d\n',ITOL);
+                    else
+                        failed = true;
+                        break;
                     end
                     FLAG11 = 1;
                     FLAG20 = 1;
@@ -180,19 +172,41 @@ while(FLAG10 == 1)                      % Solution has been converged
                 break;
             end
         end                     %20 Convergence iteration
+        if failed
+            break
+        end
     end                         %11 Bisection
+    if failed
+        break
+    end
+    %% Compute Sensitvity only for requested load steps
+    if ismember(TIME, TIMS(1):TIMS(3):TIMS(2))
+        % evaluate objective function
+        L_stiff = zeros(NEQ,1); L_LE = zeros(NEQ,1); L_TE = zeros(NEQ,1);
+        L_stiff(LOC) = EXTFORCE(:,3); L_LE(fdpoints(1)) = 1; L_TE(fdpoints(2)) = 1;
+        c_i_stiff = (DISPTD'*L_stiff)^2;
+        U_LE = DISPTD'*L_LE; U_TE = DISPTD'*L_TE;
+        
+        c_stiff = c_stiff + c_i_stiff;
+        % evaluate displacement constraint function
+        dforce = sensitvity(DET, nu, E0, Emin, lambda, mu, xPhys, penal, eta, beta, NE, ...
+            NDOF, LE, BN, E, E_int, epsilon_int, epsilon);
+        dc_i_stiff = adjoint_quad(L_stiff, dforce, DECOM, DISPTD, 0, 1, GDOF, FREEDOF, NEQ, NE);
+        dc_stiff = dc_stiff + dc_i_stiff;
+        if TIME == 1
+            g1 = (U_TE-U_LE)-g_dist;
+            g2 = (U_LE-U_TE)-g_dist;
+            dg1 = adjoint_lin(L_TE, dforce, DECOM, GDOF, FREEDOF, NEQ, NE) - adjoint_lin(L_LE, dforce, DECOM, GDOF, FREEDOF, NEQ, NE);
+            dg2 = adjoint_lin(L_LE, dforce, DECOM, GDOF, FREEDOF, NEQ, NE) - adjoint_lin(L_TE, dforce, DECOM, GDOF, FREEDOF, NEQ, NE);
+        end
+        if TIME == 2
+            c_diff = U_LE - U_TE;
+            dc_diff = adjoint_lin(L_LE, dforce, DECOM, GDOF, FREEDOF, NEQ, NE) - adjoint_lin(L_TE, dforce, DECOM, GDOF, FREEDOF, NEQ, NE);
+        end
+        U_points(:,TIME) = [U_LE; U_TE];
+    end
+
 end                             %10 Load increment
-%% sensitvity analysis
-% evaluate objective function
-L_stiff = zeros(NEQ,1);
-L_stiff(LOC) = EXTFORCE(:,3);
-c_quad = (DISPTD'*L_stiff-quad_move)^2;
-c_lin = DISPTD'*L_stiff;
-% evaluate displacement constraint function
-dforce = sensitvity(DET, nu, E0, Emin, lambda, mu, xPhys, penal, eta, beta, NE, ...
-                    NDOF, LE, BN, E, E_int, epsilon_int, epsilon);
-dc_quad = adjoint_quad(L_stiff, dforce, DECOM, DISPTD, quad_move, GDOF, FREEDOF, NEQ, NE);
-dc_lin = adjoint_lin(L_stiff, dforce, DECOM, GDOF, FREEDOF, NEQ, NE);
-% final displacement
+%
 U = double(DISPTD);
 end

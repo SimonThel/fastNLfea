@@ -1,0 +1,3 @@
+function deta = dProjEta(x, eta, beta)
+deta = - beta * csch( beta ) .* sech( beta * ( x( : ) - eta ) ).^2 .* ...
+    sinh( x( : ) * beta ) .* sinh( ( 1 - x( : ) ) * beta );
